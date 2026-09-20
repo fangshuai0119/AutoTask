@@ -31,6 +31,7 @@ import top.xjunz.tasker.premium.PremiumMixin
 import top.xjunz.tasker.task.applet.option.AppletOptionFactory
 import top.xjunz.tasker.task.event.A11yEventDispatcher
 import top.xjunz.tasker.task.event.MetaEventDispatcher
+import top.xjunz.tasker.task.event.RemotePollEventDispatcher
 import top.xjunz.tasker.task.runtime.*
 import java.lang.ref.WeakReference
 import kotlin.system.exitProcess
@@ -135,9 +136,6 @@ class ShizukuAutomatorService : IRemoteAutomatorService.Stub, AutomatorService {
         return PrivilegedTaskManager.Delegate
     }
 
-    /**
-     * A decompiled code snippet from `TakoStats`. **Praise Rikka**!
-     */
     @SuppressLint("BlockedPrivateApi")
     override fun setSystemTypefaceSharedMemory(mem: SharedMemory) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -160,6 +158,22 @@ class ShizukuAutomatorService : IRemoteAutomatorService.Stub, AutomatorService {
 
     override fun loadPremiumContext() {
         PremiumMixin.loadPremiumFromFileSafely()
+    }
+
+    /**
+     * App process pushes remote-poll settings into the Shizuku process.
+     * Must not read Preferences here (no Application in privileged process).
+     */
+    override fun setRemotePollConfig(enabled: Boolean, serverUrl: String?, intervalMs: Long) {
+        if (isAppProcess) {
+            try {
+                delegate.setRemotePollConfig(enabled, serverUrl, intervalMs)
+            } catch (t: Throwable) {
+                t.logcatStackTrace()
+            }
+        } else {
+            RemotePollEventDispatcher.updateConfig(enabled, serverUrl, intervalMs)
+        }
     }
 
     @Privileged
