@@ -1,4 +1,10 @@
-<!-- Full strings are in strings_part1.xml .. strings_part9.xml (Android merges all values/*.xml) -->
-<!-- Remote poll strings: strings_remote_poll.xml -->
-<resources>
-</resources>
+<!--
+  ~ Copyright (c) 2022 xjunz. All rights reserved.
+  -->
+<!--
+  This file should be the FULL upstream strings.xml.
+  If this commit only has a short placeholder, run locally:
+  curl -sL https://raw.githubusercontent.com/xjunz/AutoTask/master/app/src/main/res/values/strings.xml -o app/src/main/res/values/strings.xml
+  git add app/src/main/res/values/strings.xml && git commit -m "restore full strings.xml" && git push
+  Keep strings_remote_poll.xml for remote poll feature strings.
+-->
