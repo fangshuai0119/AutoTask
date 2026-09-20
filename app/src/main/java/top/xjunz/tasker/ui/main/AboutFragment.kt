@@ -244,6 +244,14 @@ class AboutFragment : BaseFragment<FragmentAboutBinding>(), ScrollTarget,
                 updateOption()
             }
 
+            MainOption.RemotePoll -> {
+                RemotePollSettingsDialog().show(childFragmentManager)
+                // 对话框关闭后刷新列表描述
+                childFragmentManager.setFragmentResultListener(
+                    "remote_poll_updated", viewLifecycleOwner
+                ) { _, _ -> updateOption() }
+            }
+
             MainOption.ExportTasks -> {
                 toast(R.string.select_export_path)
                 saveToSAFLauncher.launch(
