@@ -245,11 +245,10 @@ class AboutFragment : BaseFragment<FragmentAboutBinding>(), ScrollTarget,
             }
 
             MainOption.RemotePoll -> {
-                RemotePollSettingsDialog().show(childFragmentManager)
-                // 对话框关闭后刷新列表描述
                 childFragmentManager.setFragmentResultListener(
-                    "remote_poll_updated", viewLifecycleOwner
+                    RemotePollSettingsDialog.REQUEST_KEY, viewLifecycleOwner
                 ) { _, _ -> updateOption() }
+                RemotePollSettingsDialog().show(childFragmentManager)
             }
 
             MainOption.ExportTasks -> {
