@@ -37,6 +37,9 @@ interface IRemoteAutomatorService {
 
     void releaseWakeLock() = 16;
 
+    /** Push remote-poll settings from app process into Shizuku process. */
+    void setRemotePollConfig(boolean enabled, in String serverUrl, long intervalMs) = 17;
+
     oneway void destroy() = 16777114; // Destroy method defined by Shizuku server
 
 }
