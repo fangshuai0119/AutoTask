@@ -1,0 +1,10 @@
+<!--
+  ~ Copyright (c) 2022 xjunz. All rights reserved.
+  -->
+<resources>
+    <string name="restart_app">重启应用</string>
+    <string name="send_to">发送到…</string>
+    <string name="notification_owner_app_name">发送通知的应用名称</string>
+    <string name="oops_app_crashed">很抱歉，应用崩溃了…</string>
+    <string name="emoji_crash">💥</string>
+</resources>
