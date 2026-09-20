@@ -9,8 +9,10 @@ import android.content.ComponentName
 import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
+import android.os.DeadObjectException
 import android.os.IBinder
 import android.os.IInterface
+import android.os.RemoteException
 import android.os.ResultReceiver
 import android.os.SharedMemory
 import rikka.shizuku.Shizuku
@@ -43,6 +45,23 @@ object ShizukuAutomatorServiceController : ShizukuServiceController<ShizukuAutom
         ).processNameSuffix(SERVICE_NAME_SUFFIX).debuggable(BuildConfig.DEBUG)
             .version(BuildConfig.VERSION_CODE)
 
+    /**
+     * Remote process may already be dead when connection fails; ignore binder death errors.
+     */
+    private fun safeDestroy(remote: IRemoteAutomatorService) {
+        try {
+            if (remote.asBinder()?.pingBinder() == true) {
+                remote.destroy()
+            }
+        } catch (_: DeadObjectException) {
+            // already dead
+        } catch (_: RemoteException) {
+            // already dead or disconnected
+        } catch (_: Throwable) {
+            // best-effort cleanup only
+        }
+    }
+
     @SuppressLint("BlockedPrivateApi", "PrivateApi")
     override fun onServiceConnected(remote: IInterface) {
         remote as IRemoteAutomatorService
@@ -52,8 +71,11 @@ object ShizukuAutomatorServiceController : ShizukuServiceController<ShizukuAutom
             remote.connect(Preferences.enableWakeLock, object : ResultReceiver(null) {
                 override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
                     if (resultCode < 0) {
-                        listener?.onError(resultData?.getString(ShizukuAutomatorService.KEY_CONNECTION_ERROR))
-                        remote.destroy()
+                        listener?.onError(
+                            resultData?.getString(ShizukuAutomatorService.KEY_CONNECTION_ERROR)
+                                ?: "Shizuku service connection failed (code=$resultCode)"
+                        )
+                        safeDestroy(remote)
                     } else {
                         try {
                             remote.setPremiumContextStoragePath(PremiumMixin.premiumContextStoragePath)
@@ -67,7 +89,7 @@ object ShizukuAutomatorServiceController : ShizukuServiceController<ShizukuAutom
                             doFinally(remote)
                         } catch (e: Throwable) {
                             listener?.onError(e)
-                            remote.destroy()
+                            safeDestroy(remote)
                         }
                     }
                 }
@@ -89,6 +111,7 @@ object ShizukuAutomatorServiceController : ShizukuServiceController<ShizukuAutom
     override fun stopService() {
         super.stopService()
         service = null
+        remoteService = null
     }
 
     override fun asInterface(binder: IBinder): IRemoteAutomatorService {
