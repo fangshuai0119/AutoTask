@@ -6,6 +6,8 @@ package top.xjunz.tasker.ui.main
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.os.bundleOf
+import androidx.fragment.app.setFragmentResult
 import top.xjunz.tasker.Preferences
 import top.xjunz.tasker.R
 import top.xjunz.tasker.databinding.DialogRemotePollBinding
@@ -18,6 +20,10 @@ import top.xjunz.tasker.util.ClickListenerUtil.setNoDoubleClickListener
  * 远程轮询设置对话框
  */
 class RemotePollSettingsDialog : BaseDialogFragment<DialogRemotePollBinding>() {
+
+    companion object {
+        const val REQUEST_KEY = "remote_poll_updated"
+    }
 
     override val isFullScreen: Boolean = false
 
@@ -58,6 +64,7 @@ class RemotePollSettingsDialog : BaseDialogFragment<DialogRemotePollBinding>() {
                     Preferences.remotePollIntervalMs = intervalSecValue * 1000L
                 }
                 toast(R.string.remote_poll_saved)
+                setFragmentResult(REQUEST_KEY, bundleOf())
                 dismiss()
             }
         }
