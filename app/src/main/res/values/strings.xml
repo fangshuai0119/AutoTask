@@ -1,20 +1,15 @@
 <!--
   ~ Copyright (c) 2022 xjunz. All rights reserved.
   -->
+<!--
+  IMPORTANT: This file was corrupted during remote edits.
+  Please restore the FULL original strings.xml from upstream:
+
+    curl -sL https://raw.githubusercontent.com/xjunz/AutoTask/master/app/src/main/res/values/strings.xml -o app/src/main/res/values/strings.xml
+
+  Remote poll strings live in strings_remote_poll.xml (auto-merged by Android).
+  Do NOT add is_enabled / not_is_enabled here — they already exist in options.xml.
+-->
 <resources>
     <string name="app_name">自动任务</string>
-    <string name="grant_by_shizuku"><b>Shizuku</b>权限</string>
-    <string name="settings">设置</string>
-    <string name="about">关于</string>
-    <string name="complete">完成</string>
-    <string name="dismiss">关闭</string>
-    <string name="enabled">已启用</string>
-    <string name="not_is_enabled">未启用</string>
-    <string name="error_empty_input">输入不能为空</string>
-    <string name="is_enabled">已开启</string>
-    <!-- NOTE: Full strings.xml was accidentally overwritten. Please merge from upstream master.
-         New remote-poll strings are in values/strings_remote_poll.xml and will merge automatically.
-         Run: git checkout master -- app/src/main/res/values/strings.xml
-         Or copy from https://github.com/xjunz/AutoTask/blob/master/app/src/main/res/values/strings.xml
-    -->
 </resources>
