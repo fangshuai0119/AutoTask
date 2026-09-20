@@ -13,6 +13,8 @@ import top.xjunz.tasker.R
 import top.xjunz.tasker.databinding.DialogRemotePollBinding
 import top.xjunz.tasker.ktx.textString
 import top.xjunz.tasker.ktx.toast
+import top.xjunz.tasker.service.controller.ShizukuAutomatorServiceController
+import top.xjunz.tasker.task.event.RemotePollEventDispatcher
 import top.xjunz.tasker.ui.base.BaseDialogFragment
 import top.xjunz.tasker.util.ClickListenerUtil.setNoDoubleClickListener
 
@@ -63,6 +65,15 @@ class RemotePollSettingsDialog : BaseDialogFragment<DialogRemotePollBinding>() {
                 if (intervalSecValue != null && intervalSecValue >= 5) {
                     Preferences.remotePollIntervalMs = intervalSecValue * 1000L
                 }
+
+                // 立即同步到当前进程 + Shizuku 子进程（若服务已启动）
+                RemotePollEventDispatcher.updateConfig(
+                    Preferences.remotePollEnabled,
+                    Preferences.remoteServerUrl,
+                    Preferences.remotePollIntervalMs
+                )
+                ShizukuAutomatorServiceController.pushRemotePollConfig()
+
                 toast(R.string.remote_poll_saved)
                 setFragmentResult(REQUEST_KEY, bundleOf())
                 dismiss()
