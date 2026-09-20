@@ -37,6 +37,16 @@ object Preferences {
 
     var recordedVersionCode by global.primitive("recorded_version_code", -1)
 
+    // ========== Remote poll settings ==========
+    /** 是否启用远程轮询 */
+    var remotePollEnabled by global.primitive("remote_poll_enabled", false)
+
+    /** 远程服务器 baseUrl，例如 https://your-server.com/api */
+    var remoteServerUrl by global.nullable<String>("remote_server_url", null)
+
+    /** 轮询间隔（毫秒），最小建议 5000 */
+    var remotePollIntervalMs by global.primitive("remote_poll_interval_ms", 15_000L)
+
     private fun <T> SharedPreferences.nullable(
         name: String,
         defValue: T?
