@@ -57,7 +57,7 @@ class RemotePollSettingsDialog : BaseDialogFragment<DialogRemotePollBinding>() {
                 if (intervalSecValue != null && intervalSecValue >= 5) {
                     Preferences.remotePollIntervalMs = intervalSecValue * 1000L
                 }
-                toast(R.string.saved)
+                toast(R.string.remote_poll_saved)
                 dismiss()
             }
         }
