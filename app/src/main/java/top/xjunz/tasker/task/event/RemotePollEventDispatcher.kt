@@ -5,6 +5,7 @@
 
 package top.xjunz.tasker.task.event
 
+import android.os.Handler
 import android.os.Looper
 import androidx.core.os.HandlerCompat
 import io.ktor.client.HttpClient
@@ -51,35 +52,40 @@ class RemotePollEventDispatcher(looper: Looper) : EventDispatcher() {
         }
     }
 
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val httpClient = HttpClient(CIO) {
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    private val httpClient: HttpClient = HttpClient(CIO) {
         expectSuccess = false
         engine {
             requestTimeout = 10_000
         }
     }
-    private val json = Json { ignoreUnknownKeys = true }
 
-    private val handler by lazy { HandlerCompat.createAsync(looper) }
+    private val json: Json = Json { ignoreUnknownKeys = true }
 
-    private val pollRunnable = object : Runnable {
+    private val handler: Handler = HandlerCompat.createAsync(looper)
+
+    /** Explicit type to avoid recursive type-checking on self-reference. */
+    private val pollRunnable: Runnable = object : Runnable {
         override fun run() {
+            val intervalMs: Long = Preferences.remotePollIntervalMs.coerceAtLeast(5_000L)
             if (!Preferences.remotePollEnabled) {
                 // 未启用时仍保持循环，方便运行时开关
-                handler.postDelayed(this, Preferences.remotePollIntervalMs.coerceAtLeast(5_000L))
+                handler.postDelayed(this, intervalMs)
                 return
             }
-            val baseUrl = Preferences.remoteServerUrl?.trim()?.trimEnd('/')
+            val baseUrl: String? = Preferences.remoteServerUrl?.trim()?.trimEnd('/')
             if (baseUrl.isNullOrEmpty()) {
-                handler.postDelayed(this, Preferences.remotePollIntervalMs.coerceAtLeast(5_000L))
+                handler.postDelayed(this, intervalMs)
                 return
             }
             scope.launch {
                 try {
                     val response = httpClient.get("$baseUrl/tasks/pending")
-                    val body = response.bodyAsText()
+                    val body: String = response.bodyAsText()
                     if (response.status.value in 200..299 && body.isNotBlank()) {
-                        val pending = json.decodeFromString(PendingTaskResponse.serializer(), body)
+                        val pending: PendingTaskResponse =
+                            json.decodeFromString(PendingTaskResponse.serializer(), body)
                         if (pending.shouldExecute && pending.taskChecksum != 0L) {
                             val event = Event.obtain(EVENT_ON_REMOTE_TRIGGER)
                             event.putExtra(EXTRA_TASK_CHECKSUM, pending.taskChecksum)
@@ -91,8 +97,10 @@ class RemotePollEventDispatcher(looper: Looper) : EventDispatcher() {
                 } catch (e: Exception) {
                     logcat("Remote poll error: ${e.message}")
                 } finally {
-                    val interval = Preferences.remotePollIntervalMs.coerceAtLeast(5_000L)
-                    handler.postDelayed(this@RemotePollEventDispatcher.pollRunnable, interval)
+                    val nextInterval: Long =
+                        Preferences.remotePollIntervalMs.coerceAtLeast(5_000L)
+                    // Use this (the Runnable), not pollRunnable — avoids recursive type inference
+                    handler.postDelayed(this@run, nextInterval)
                 }
             }
         }
@@ -113,12 +121,17 @@ class RemotePollEventDispatcher(looper: Looper) : EventDispatcher() {
     }
 
     private fun doReport(taskChecksum: Long, success: Boolean, message: String?) {
-        val baseUrl = Preferences.remoteServerUrl?.trim()?.trimEnd('/') ?: return
+        val baseUrl: String = Preferences.remoteServerUrl?.trim()?.trimEnd('/') ?: return
         scope.launch {
             try {
                 httpClient.post("$baseUrl/tasks/report") {
                     contentType(ContentType.Application.Json)
-                    setBody(json.encodeToString(StatusReport.serializer(), StatusReport(taskChecksum, success, message)))
+                    setBody(
+                        json.encodeToString(
+                            StatusReport.serializer(),
+                            StatusReport(taskChecksum, success, message)
+                        )
+                    )
                 }
                 logcat("Remote report: checksum=$taskChecksum success=$success")
             } catch (e: Exception) {
