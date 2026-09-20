@@ -17,6 +17,7 @@ import top.xjunz.tasker.task.event.A11yEventDispatcher
 import top.xjunz.tasker.task.event.MetaEventDispatcher
 import top.xjunz.tasker.task.event.NetworkEventDispatcher
 import top.xjunz.tasker.task.event.PollEventDispatcher
+import top.xjunz.tasker.task.event.RemotePollEventDispatcher
 import top.xjunz.tasker.task.runtime.ITaskCompletionCallback
 import top.xjunz.tasker.task.runtime.OneshotTaskScheduler
 import top.xjunz.tasker.task.runtime.ResidentTaskScheduler
@@ -62,6 +63,8 @@ interface AutomatorService {
         eventDispatcher.registerEventDispatcher(PollEventDispatcher(looper))
         eventDispatcher.registerEventDispatcher(NetworkEventDispatcher())
         //eventDispatcher.registerEventDispatcher(ClipboardEventDispatcher())
+        // 远程轮询：根据服务器接口决定是否触发任务，并支持上报状态
+        eventDispatcher.registerEventDispatcher(RemotePollEventDispatcher(looper))
         eventDispatcher.addCallback(residentTaskScheduler)
         eventDispatcher.addCallback(oneshotTaskScheduler)
     }
