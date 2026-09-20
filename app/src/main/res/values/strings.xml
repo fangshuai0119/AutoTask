@@ -1,15 +1,1 @@
-<!--
-  ~ Copyright (c) 2022 xjunz. All rights reserved.
-  -->
-<!--
-  IMPORTANT: This file was corrupted during remote edits.
-  Please restore the FULL original strings.xml from upstream:
-
-    curl -sL https://raw.githubusercontent.com/xjunz/AutoTask/master/app/src/main/res/values/strings.xml -o app/src/main/res/values/strings.xml
-
-  Remote poll strings live in strings_remote_poll.xml (auto-merged by Android).
-  Do NOT add is_enabled / not_is_enabled here — they already exist in options.xml.
--->
-<resources>
-    <string name="app_name">自动任务</string>
-</resources>
+PLACEHOLDER
