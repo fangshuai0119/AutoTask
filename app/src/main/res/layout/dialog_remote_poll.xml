@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="24dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -22,17 +22,22 @@
                 android:id="@+id/tv_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
+                android:layout_centerVertical="true"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@+id/ib_dismiss"
+                android:layout_marginEnd="8dp"
                 android:text="@string/remote_poll"
-                android:textAppearance="@style/TextAppearance.Material3.ActionBar.Title" />
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
 
-            <ImageButton
+            <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/ib_dismiss"
-                style="@style/Widget.App.ImageButton.Close"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_alignParentEnd="true"
-                android:contentDescription="@string/dismiss" />
+                android:background="@drawable/bg_selectable_circle"
+                android:contentDescription="@string/dismiss"
+                android:src="@drawable/ic_baseline_close_24"
+                android:tint="?colorPrimary" />
         </RelativeLayout>
 
         <TextView
@@ -111,7 +116,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="@string/save" />
+                android:text="@string/complete" />
         </LinearLayout>
     </LinearLayout>
 </layout>
