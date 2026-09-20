@@ -58,6 +58,20 @@ sealed class MainOption(
             longDesc = R.string.tip_wake_lock
         )
 
+    object RemotePoll :
+        MainOption(
+            R.string.remote_poll,
+            R.drawable.ic_baseline_add_link_24,
+            desc = {
+                if (Preferences.remotePollEnabled) {
+                    Preferences.remoteServerUrl ?: R.string.enabled
+                } else {
+                    R.string.not_is_enabled
+                }
+            },
+            longDesc = R.string.tip_remote_poll
+        )
+
     object NightMode : MainOption(R.string.night_mode, R.drawable.baseline_nights_stay_24, desc = {
         when (Preferences.nightMode) {
             AppCompatDelegate.MODE_NIGHT_YES -> R.string.turn_on
@@ -84,9 +98,14 @@ sealed class MainOption(
 
     companion object {
         val ALL_OPTIONS = if (upForGrabs) {
-            arrayOf(ExportTasks, AutoStart, WakeLock, NightMode, Feedback, VersionInfo, About)
+            arrayOf(
+                ExportTasks, AutoStart, WakeLock, RemotePoll, NightMode, Feedback, VersionInfo, About
+            )
         } else {
-            arrayOf(PremiumStatus, ExportTasks, AutoStart, NightMode, Feedback, VersionInfo, About)
+            arrayOf(
+                PremiumStatus, ExportTasks, AutoStart, WakeLock, RemotePoll, NightMode,
+                Feedback, VersionInfo, About
+            )
         }
     }
 }
