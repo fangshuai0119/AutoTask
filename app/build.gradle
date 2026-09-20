@@ -8,18 +8,18 @@ plugins {
 }
 
 android {
-    signingConfigs {
-        xjunz {
-            def localProperties = new Properties()
-            localProperties.load(new FileInputStream(rootProject.file("local.properties")))
-            if (localProperties != null) {
-                storeFile file(localProperties['storeFile'])
-                storePassword localProperties['storePassword']
-                keyAlias localProperties['keyAlias']
-                keyPassword localProperties['keyPassword']
-            }
-        }
-    }
+//    signingConfigs {
+//        xjunz {
+//            def localProperties = new Properties()
+//            localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+//            if (localProperties != null) {
+//                storeFile file(localProperties['storeFile'])
+//                storePassword localProperties['storePassword']
+//                keyAlias localProperties['keyAlias']
+//                keyPassword localProperties['keyPassword']
+//            }
+//        }
+//    }
     compileSdk compile_sdk_version
 
     defaultConfig {
@@ -42,12 +42,12 @@ android {
             shrinkResources true
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.xjunz
+//            signingConfig signingConfigs.xjunz
         }
         debug {
             debuggable true
             minifyEnabled false
-            signingConfig signingConfigs.xjunz
+//            signingConfig signingConfigs.xjunz
         }
     }
     buildFeatures {
