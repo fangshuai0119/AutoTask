@@ -23,6 +23,7 @@ import top.xjunz.tasker.ktx.whenAlive
 import top.xjunz.tasker.premium.PremiumMixin
 import top.xjunz.tasker.service.IRemoteAutomatorService
 import top.xjunz.tasker.service.ShizukuAutomatorService
+import top.xjunz.tasker.task.event.RemotePollEventDispatcher
 import top.xjunz.tasker.task.runtime.LocalTaskManager
 
 
@@ -45,20 +46,26 @@ object ShizukuAutomatorServiceController : ShizukuServiceController<ShizukuAutom
         ).processNameSuffix(SERVICE_NAME_SUFFIX).debuggable(BuildConfig.DEBUG)
             .version(BuildConfig.VERSION_CODE)
 
-    /**
-     * Remote process may already be dead when connection fails; ignore binder death errors.
-     */
     private fun safeDestroy(remote: IRemoteAutomatorService) {
         try {
             if (remote.asBinder()?.pingBinder() == true) {
                 remote.destroy()
             }
         } catch (_: DeadObjectException) {
-            // already dead
         } catch (_: RemoteException) {
-            // already dead or disconnected
         } catch (_: Throwable) {
-            // best-effort cleanup only
+        }
+    }
+
+    /** Push Preferences (app process) into Shizuku process + local companion. */
+    fun pushRemotePollConfig() {
+        val enabled = Preferences.remotePollEnabled
+        val url = Preferences.remoteServerUrl
+        val interval = Preferences.remotePollIntervalMs
+        RemotePollEventDispatcher.updateConfig(enabled, url, interval)
+        try {
+            remoteService?.setRemotePollConfig(enabled, url, interval)
+        } catch (_: Throwable) {
         }
     }
 
@@ -105,6 +112,8 @@ object ShizukuAutomatorServiceController : ShizukuServiceController<ShizukuAutom
         }
         remoteService = remote
         service = ShizukuAutomatorService(remote)
+        // Preferences only valid in app process — push into remote after connect
+        pushRemotePollConfig()
         listener?.onServiceStarted()
     }
 
