@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Remote poll related strings -->
+<resources>
+    <string name="remote_poll">远程轮询</string>
+    <string name="enable_remote_poll">启用远程轮询</string>
+    <string name="remote_server_url">服务器地址 (baseUrl)</string>
+    <string name="remote_poll_interval_sec">轮询间隔（秒）</string>
+    <string name="tip_remote_poll">客户端定期向你的服务器查询是否需要执行任务，执行完成后自动上报状态。</string>
+    <string name="tip_remote_poll_interval">建议不少于 5 秒，间隔过短会增加耗电与服务器压力。</string>
+    <string name="error_empty_server_url">请填写服务器地址</string>
+    <string name="error_invalid_server_url">服务器地址需以 http:// 或 https:// 开头</string>
+    <string name="error_poll_interval_too_short">轮询间隔不能小于 5 秒</string>
+    <string name="remote_poll_saved">远程轮询设置已保存</string>
+</resources>
