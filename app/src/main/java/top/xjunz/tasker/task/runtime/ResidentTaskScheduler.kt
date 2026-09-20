@@ -18,6 +18,7 @@ import top.xjunz.tasker.engine.task.TaskManager
 import top.xjunz.tasker.engine.task.TaskScheduler
 import top.xjunz.tasker.engine.task.XTask
 import top.xjunz.tasker.service.isPremium
+import top.xjunz.tasker.task.event.RemotePollEventDispatcher
 import kotlin.coroutines.CoroutineContext
 import kotlin.system.exitProcess
 
@@ -77,7 +78,55 @@ class ResidentTaskScheduler(private val taskManager: TaskManager<*, *>) : EventD
     }
 
     override fun onEvents(events: Array<Event>) {
+        // 如果是远程触发事件，只调度匹配 checksum 的任务
+        val remoteEvent = events.firstOrNull { it.type == RemotePollEventDispatcher.EVENT_ON_REMOTE_TRIGGER }
+        if (remoteEvent != null) {
+            val targetChecksum = try {
+                remoteEvent.getExtra<Long>(RemotePollEventDispatcher.EXTRA_TASK_CHECKSUM)
+            } catch (_: Exception) {
+                0L
+            }
+            if (targetChecksum != 0L) {
+                val matched = getResidentTasks().filter { it.checksum == targetChecksum }
+                if (matched.isNotEmpty()) {
+                    scheduleTasks(matched, events, makeReportingListener(targetChecksum))
+                } else {
+                    logcat("Remote trigger: no resident task found for checksum=$targetChecksum")
+                }
+                return
+            }
+        }
         scheduleTasks(getResidentTasks(), events, listener)
+    }
+
+    private fun makeReportingListener(taskChecksum: Long): XTask.TaskStateListener {
+        return object : XTask.TaskStateListener {
+            override fun onTaskStarted(runtime: TaskRuntime) {
+                logcat("\n\n")
+                logcat("******** $runtime Started (remote) [${Thread.currentThread()}] ********")
+            }
+
+            override fun onTaskError(runtime: TaskRuntime, t: Throwable) {
+                logcat(t.stackTraceToString())
+                logcat("-------- $runtime Error --------")
+                RemotePollEventDispatcher.reportStatus(taskChecksum, false, t.message)
+            }
+
+            override fun onTaskFailure(runtime: TaskRuntime) {
+                logcat("-------- $runtime Failure --------")
+                RemotePollEventDispatcher.reportStatus(taskChecksum, false, "failure")
+            }
+
+            override fun onTaskSuccess(runtime: TaskRuntime) {
+                logcat("-------- $runtime Success --------")
+                RemotePollEventDispatcher.reportStatus(taskChecksum, true)
+            }
+
+            override fun onTaskCancelled(runtime: TaskRuntime) {
+                logcat("-------- $runtime Cancelled --------")
+                RemotePollEventDispatcher.reportStatus(taskChecksum, false, "cancelled")
+            }
+        }
     }
 
     private val listener = object : XTask.TaskStateListener {
