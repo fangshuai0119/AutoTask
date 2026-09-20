@@ -65,12 +65,11 @@ class RemotePollEventDispatcher(looper: Looper) : EventDispatcher() {
 
     private val handler: Handler = HandlerCompat.createAsync(looper)
 
-    /** Explicit type to avoid recursive type-checking on self-reference. */
+    /** Explicit [Runnable] type avoids recursive type-checking when self-scheduling. */
     private val pollRunnable: Runnable = object : Runnable {
         override fun run() {
             val intervalMs: Long = Preferences.remotePollIntervalMs.coerceAtLeast(5_000L)
             if (!Preferences.remotePollEnabled) {
-                // 未启用时仍保持循环，方便运行时开关
                 handler.postDelayed(this, intervalMs)
                 return
             }
@@ -79,6 +78,8 @@ class RemotePollEventDispatcher(looper: Looper) : EventDispatcher() {
                 handler.postDelayed(this, intervalMs)
                 return
             }
+            // Capture the Runnable for use inside the coroutine (this would be wrong there)
+            val self: Runnable = this
             scope.launch {
                 try {
                     val response = httpClient.get("$baseUrl/tasks/pending")
@@ -99,8 +100,7 @@ class RemotePollEventDispatcher(looper: Looper) : EventDispatcher() {
                 } finally {
                     val nextInterval: Long =
                         Preferences.remotePollIntervalMs.coerceAtLeast(5_000L)
-                    // Use this (the Runnable), not pollRunnable — avoids recursive type inference
-                    handler.postDelayed(this@run, nextInterval)
+                    handler.postDelayed(self, nextInterval)
                 }
             }
         }
