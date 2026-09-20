@@ -30,12 +30,8 @@ import top.xjunz.tasker.isAppProcess
 /**
  * 轮询远程服务器，根据接口返回决定是否触发任务，并在任务结束后上报状态。
  *
- * 注意：Shizuku 服务跑在独立进程，不能使用依赖 Application 的 [top.xjunz.tasker.Preferences]。
- * 配置通过 [updateConfig] 从主进程注入（连接成功时 / 设置页保存时）。
- *
- * 服务端接口约定：
- * - GET  {baseUrl}/tasks/pending
- * - POST {baseUrl}/tasks/report
+ * Shizuku 独立进程没有 Application，禁止直接访问 Preferences。
+ * 配置通过 [updateConfig] 注入（连接成功 / 设置页保存）。
  */
 class RemotePollEventDispatcher(looper: Looper) : EventDispatcher() {
 
@@ -48,24 +44,18 @@ class RemotePollEventDispatcher(looper: Looper) : EventDispatcher() {
         var instance: RemotePollEventDispatcher? = null
             private set
 
-        /** 是否启用（由主进程注入，默认关闭） */
         @Volatile
         var enabled: Boolean = false
             private set
 
-        /** 服务器 baseUrl */
         @Volatile
         var serverUrl: String? = null
             private set
 
-        /** 轮询间隔毫秒 */
         @Volatile
         var intervalMs: Long = 15_000L
             private set
 
-        /**
- * 从主进程更新配置。Shizuku 进程内请通过 AIDL 调用后再落到这里。
-         */
         @JvmStatic
         fun updateConfig(enabled: Boolean, serverUrl: String?, intervalMs: Long) {
             this.enabled = enabled
@@ -76,6 +66,21 @@ class RemotePollEventDispatcher(looper: Looper) : EventDispatcher() {
 
         fun reportStatus(taskChecksum: Long, success: Boolean, message: String? = null) {
             instance?.doReport(taskChecksum, success, message)
+        }
+
+        /** 仅主进程 / 辅助功能进程可调用（有 Application）。 */
+        fun trySyncFromPreferences() {
+            if (!isAppProcess) return
+            try {
+                val prefs = top.xjunz.tasker.Preferences
+                updateConfig(
+                    prefs.remotePollEnabled,
+                    prefs.remoteServerUrl,
+                    prefs.remotePollIntervalMs
+                )
+            } catch (t: Throwable) {
+                logcat("RemotePoll trySyncFromPreferences failed: ${t.message}")
+            }
         }
     }
 
@@ -131,16 +136,7 @@ class RemotePollEventDispatcher(looper: Looper) : EventDispatcher() {
 
     override fun onRegistered() {
         instance = this
-        // 辅助功能模式与主进程同一进程，可尝试从 Preferences 同步（失败则忽略）
-        if (isAppProcess) {
-            try {
-                val prefsClass = Class.forName("top.xjunz.tasker.Preferences")
-                val enabledField = prefsClass.getDeclaredField("remotePollEnabled")
-                // Preferences uses delegated properties; read via getters if present
-                // Safer: only rely on updateConfig from UI / connect path
-            } catch (_: Throwable) {
-            }
-        }
+        trySyncFromPreferences()
         handler.post(pollRunnable)
     }
 
